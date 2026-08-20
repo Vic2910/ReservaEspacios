@@ -18,6 +18,22 @@ php main.php
 
 El programa muestra reservas reales de prueba, calcula el costo mediante polimorfismo, guarda el reporte en `data/reservas.json` y demuestra una validacion lanzando una excepcion.
 
+## Prueba rapida
+
+Ademas de la demostracion principal, el proyecto incluye una prueba de humo:
+
+```bash
+php tests/smoke.php
+```
+
+El resultado esperado es `SMOKE_TEST_OK`. Esta prueba confirma las tarifas polimorficas y la escritura/lectura del archivo JSON sin modificar los datos de demostracion.
+
+Para revisar el historial solicitado en la presentacion:
+
+```bash
+git log --oneline --decorate -10
+```
+
 ## Estructura
 
 - `src/Contratos/`: interfaces `Reservable` y `Exportable`.
