@@ -1,1 +1,26 @@
-[]
+[
+    {
+        "id": "R-001",
+        "cliente": "Equipo Los Titanes",
+        "espacio": "FUT-01",
+        "inicio": "2026-09-10 18:00",
+        "horas": 2,
+        "costo": 87.5
+    },
+    {
+        "id": "R-002",
+        "cliente": "Maria Gonzalez",
+        "espacio": "TEN-01",
+        "inicio": "2026-09-10 10:00",
+        "horas": 1,
+        "costo": 23
+    },
+    {
+        "id": "R-003",
+        "cliente": "Club Nadadores UNI",
+        "espacio": "PIS-01",
+        "inicio": "2026-09-10 16:00",
+        "horas": 2,
+        "costo": 80
+    }
+]
