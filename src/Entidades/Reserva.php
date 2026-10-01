@@ -6,47 +6,149 @@ namespace App\Entidades;
 
 use App\Contratos\Exportable;
 use App\Espacios\Espacio;
-use InvalidArgumentException;
+use App\Exceptions\DominioException;
+use DateTimeImmutable;
 
+/**
+ * Reserva de un espacio: relaciona la jerarquia de espacios con un cliente,
+ * una fecha y un horario. La reserva CONPO NE a un espacio (relacion 1 a N
+ * que en la base de datos es la llave foranea `espacio_id`). [COMPOSICION]
+ */
 final class Reserva implements Exportable
 {
-    public readonly string $id;
-    public readonly float $costo;
+    private int $id;
+    private Espacio $espacio;
+    private string $cliente;
+    private string $fecha;
+    private string $horaInicio;
+    private string $horaFin;
 
     public function __construct(
-        string $id,
-        public readonly string $cliente,
-        public readonly Espacio $espacio,
-        public readonly string $inicio,
-        public readonly int $horas,
-        bool $horarioPico = false
+        Espacio $espacio,
+        string $cliente,
+        string $fecha,
+        string $horaInicio,
+        string $horaFin,
+        int $id = 0
     ) {
+        $cliente = trim($cliente);
+
         if ($cliente === '') {
-            throw new InvalidArgumentException('El cliente es obligatorio.');
+            throw new DominioException('El cliente es obligatorio.');
         }
 
-        if ($horas < 1 || $horas > 8) {
-            throw new InvalidArgumentException('La reserva debe durar entre 1 y 8 horas.');
+        if (mb_strlen($cliente) > 80) {
+            throw new DominioException('El cliente no puede superar 80 caracteres.');
         }
 
-        if (!$espacio->estaDisponible($inicio, $horas)) {
-            throw new InvalidArgumentException('El espacio ya esta ocupado en ese horario.');
+        if (!self::fechaValida($fecha)) {
+            throw new DominioException('La fecha de la reserva no es valida. Use el formato AAAA-MM-DD.');
+        }
+
+        if (!self::horaValida($horaInicio) || !self::horaValida($horaFin)) {
+            throw new DominioException('Las horas de la reserva no son validas. Use el formato HH:MM.');
+        }
+
+        if ($horaFin <= $horaInicio) {
+            throw new DominioException('La hora de fin debe ser posterior a la hora de inicio.');
         }
 
         $this->id = $id;
-        $this->costo = $espacio->calcularCosto($horas, $horarioPico);
-        $espacio->reservar($inicio, $horas);
+        $this->espacio = $espacio;
+        $this->cliente = $cliente;
+        $this->fecha = $fecha;
+        $this->horaInicio = $horaInicio;
+        $this->horaFin = $horaFin;
     }
 
-    public function aArray(): array
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function getEspacio(): Espacio
+    {
+        return $this->espacio;
+    }
+
+    public function getCliente(): string
+    {
+        return $this->cliente;
+    }
+
+    public function getFecha(): string
+    {
+        return $this->fecha;
+    }
+
+    public function getHoraInicio(): string
+    {
+        return $this->horaInicio;
+    }
+
+    public function getHoraFin(): string
+    {
+        return $this->horaFin;
+    }
+
+    /** Duracion en horas (admite media hora). */
+    public function horas(): float
+    {
+        $inicio = DateTimeImmutable::createFromFormat('!Y-m-d H:i', $this->fecha . ' ' . $this->horaInicio);
+        $fin = DateTimeImmutable::createFromFormat('!Y-m-d H:i', $this->fecha . ' ' . $this->horaFin);
+
+        if ($inicio === false || $fin === false) {
+            return 0.0;
+        }
+
+        return ($fin->getTimestamp() - $inicio->getTimestamp()) / 3600;
+    }
+
+    /** Horario pico: a partir de las 17:00. */
+    public function enHorarioPico(): bool
+    {
+        return $this->horaInicio >= '17:00';
+    }
+
+    /**
+     * Delega el calculo al espacio: el costo lo resuelve cada subclase con
+     * su propia tarifa, sin preguntar nunca de que tipo es el espacio. [POLIMORFISMO]
+     */
+    public function costoEstimado(): float
+    {
+        return $this->espacio->calcularCosto($this->horas(), $this->enHorarioPico());
+    }
+
+    /** @return array<string, mixed> */
+    public function aArray(): array // [INTERFAZ]
     {
         return [
             'id' => $this->id,
             'cliente' => $this->cliente,
-            'espacio' => $this->espacio->codigo,
-            'inicio' => $this->inicio,
-            'horas' => $this->horas,
-            'costo' => $this->costo,
+            'espacio' => $this->espacio->getNombre(),
+            'fecha' => $this->fecha,
+            'hora_inicio' => $this->horaInicio,
+            'hora_fin' => $this->horaFin,
+            'horas' => $this->horas(),
+            'costo' => $this->costoEstimado(),
         ];
+    }
+
+    private static function fechaValida(string $fecha): bool
+    {
+        if (!preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $fecha, $partes)) {
+            return false;
+        }
+
+        return checkdate((int) $partes[2], (int) $partes[3], (int) $partes[1]);
+    }
+
+    private static function horaValida(string $hora): bool
+    {
+        if (!preg_match('/^(\d{2}):(\d{2})$/', $hora, $partes)) {
+            return false;
+        }
+
+        return (int) $partes[1] <= 23 && (int) $partes[2] <= 59;
     }
 }

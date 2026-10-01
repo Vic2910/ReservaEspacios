@@ -5,23 +5,24 @@ declare(strict_types=1);
 require __DIR__ . '/../vendor/autoload.php';
 
 use App\Entidades\Reserva;
-use App\Espacios\CanchaFutbol;
-use App\Espacios\CanchaTenis;
-use App\Servicios\ArchivoReservas;
+use App\Espacios\Cancha;
+use App\Espacios\Sala;
+use App\Services\ArchivoReservas;
 
-$futbol = new CanchaFutbol('TEST-FUT', 'Cancha de prueba', 35.00);
-$tenis = new CanchaTenis('TEST-TEN', 'Cancha de tenis de prueba', 18.00);
+$sala = new Sala('Sala de prueba', 20, 120.00, 'Edificio de prueba');
+$cancha = new Cancha('Cancha de prueba', 22, 90.00, 'Futbol');
 
-$reservaFutbol = new Reserva('TEST-001', 'Equipo de prueba', $futbol, '2026-09-15 18:00', 2, true);
-$reservaTenis = new Reserva('TEST-002', 'Persona de prueba', $tenis, '2026-09-15 10:00', 1);
+$reservaSala = new Reserva($sala, 'Cliente de prueba', '2026-10-15', '17:00', '19:00');
+$reservaCancha = new Reserva($cancha, 'Club de prueba', '2026-10-15', '10:00', '11:00');
 
-if ($reservaFutbol->costo !== 87.50 || $reservaTenis->costo !== 23.00) {
+// 120.00 * 2 h * 1.20 (pico) = 288.00  |  90.00 * 1 h * 1.00 = 90.00
+if ($reservaSala->costoEstimado() !== 288.00 || $reservaCancha->costoEstimado() !== 90.00) {
     throw new RuntimeException('Las tarifas polimorficas no coinciden con lo esperado.');
 }
 
 $rutaTemporal = sys_get_temp_dir() . '/reservas-smoke.json';
 $archivo = new ArchivoReservas($rutaTemporal);
-$archivo->guardar([$reservaFutbol, $reservaTenis]);
+$archivo->guardar([$reservaSala, $reservaCancha]);
 $datos = $archivo->leer();
 
 if (count($datos) !== 2) {
@@ -29,4 +30,12 @@ if (count($datos) !== 2) {
 }
 
 unlink($rutaTemporal);
+
+try {
+    new Reserva($sala, 'Cliente de prueba', '2026-10-15', '19:00', '18:00');
+    throw new RuntimeException('Se esperaba una excepcion por hora de fin anterior.');
+} catch (InvalidArgumentException $ex) {
+    // validacion de dominio correcta
+}
+
 echo "SMOKE_TEST_OK\n";

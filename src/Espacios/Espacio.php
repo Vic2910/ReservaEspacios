@@ -6,29 +6,59 @@ namespace App\Espacios;
 
 use App\Contratos\Exportable;
 use App\Contratos\Reservable;
-use InvalidArgumentException;
+use App\Exceptions\DominioException;
 
+/**
+ * Clase abstracta de la jerarquia de espacios (Fase 1 conservada y mejorada).
+ * Concentra los datos comunes, las invariantes y las operaciones polimorficas
+ * que cada subtipo (Sala, Escritorio, Cancha) resuelve a su manera. [HERENCIA]
+ */
 abstract class Espacio implements Reservable, Exportable
 {
+    /** Valor de la columna `tipo` en la base de datos (tabla unica / STI). */
+    public const TIPO = '';
+
+    protected int $id;
     protected string $nombre;
+    protected int $capacidad;
     protected float $tarifaBase;
-    private array $reservas = [];
+    protected ?string $imagen;
 
     public function __construct(
-        public readonly string $codigo,
         string $nombre,
-        float $tarifaBase
+        int $capacidad,
+        float $tarifaBase,
+        ?string $imagen = null,
+        int $id = 0
     ) {
-        if ($codigo === '' || $nombre === '') {
-            throw new InvalidArgumentException('El codigo y el nombre son obligatorios.');
+        $nombre = trim($nombre);
+
+        if ($nombre === '') {
+            throw new DominioException('El nombre del espacio es obligatorio.');
+        }
+
+        if (mb_strlen($nombre) > 80) {
+            throw new DominioException('El nombre del espacio no puede superar 80 caracteres.');
+        }
+
+        if ($capacidad <= 0) {
+            throw new DominioException('La capacidad debe ser mayor que cero.');
         }
 
         if ($tarifaBase <= 0) {
-            throw new InvalidArgumentException('La tarifa base debe ser mayor que cero.');
+            throw new DominioException('La tarifa base debe ser mayor que cero.');
         }
 
+        $this->id = $id;
         $this->nombre = $nombre;
+        $this->capacidad = $capacidad;
         $this->tarifaBase = $tarifaBase;
+        $this->imagen = $imagen;
+    }
+
+    public function getId(): int
+    {
+        return $this->id;
     }
 
     public function getNombre(): string
@@ -36,49 +66,88 @@ abstract class Espacio implements Reservable, Exportable
         return $this->nombre;
     }
 
-    public function reservar(string $inicio, int $horas): void
+    public function getCapacidad(): int
     {
-        if ($horas < 1 || $horas > 8) {
-            throw new InvalidArgumentException('Una reserva debe durar entre 1 y 8 horas.');
-        }
-
-        if (!$this->estaDisponible($inicio, $horas)) {
-            throw new InvalidArgumentException("El espacio {$this->codigo} no esta disponible.");
-        }
-
-        $this->reservas[] = ['inicio' => $inicio, 'horas' => $horas];
+        return $this->capacidad;
     }
 
-    public function estaDisponible(string $inicio, int $horas): bool
+    public function getTarifaBase(): float
     {
-        if ($horas < 1) {
-            return false;
-        }
-
-        $nuevoInicio = new \DateTimeImmutable($inicio);
-        $nuevoFin = $nuevoInicio->modify("+{$horas} hours");
-
-        foreach ($this->reservas as $reserva) {
-            $inicioExistente = new \DateTimeImmutable($reserva['inicio']);
-            $finExistente = $inicioExistente->modify("+{$reserva['horas']} hours");
-
-            if ($nuevoInicio < $finExistente && $nuevoFin > $inicioExistente) {
-                return false;
-            }
-        }
-
-        return true;
+        return $this->tarifaBase;
     }
 
-    abstract public function calcularCosto(int $horas, bool $horarioPico = false): float;
+    public function getImagen(): ?string
+    {
+        return $this->imagen;
+    }
 
-    public function aArray(): array
+    public function getTipo(): string
+    {
+        return static::TIPO;
+    }
+
+    public function setImagen(?string $imagen): void
+    {
+        $this->imagen = $imagen;
+    }
+
+    /** Cada subtipo calcula su costo con su propia regla. [POLIMORFISMO] */
+    abstract public function calcularCosto(float $horas, bool $horarioPico = false): float;
+
+    /** Etiqueta legible del tipo; la comparten la fabrica, las vistas y el reporte. */
+    abstract public static function etiquetaTipo(): string;
+
+    /** Nombre legible del tipo, usado por vistas y reportes sin condicionales. */
+    public function descripcionTipo(): string
+    {
+        return static::etiquetaTipo();
+    }
+
+    /** Dato calculado polimorfico para el listado y el reporte web. */
+    abstract public function datoCalculado(): string;
+
+    /**
+     * Definicion (no valores) de los campos propios de cada tipo.
+     * Las vistas y el validador recorren esta lista sin saber que subclase es. [ABSTRACCION]
+     *
+     * @return list<array<string, mixed>>
+     */
+    abstract public static function camposEspecificos(): array;
+
+    /**
+     * Columnas propias del subtipo para la tabla unica de la base de datos.
+     *
+     * @return array<string, mixed>
+     */
+    abstract protected function datosEspecificos(): array;
+
+    /**
+     * Fila completa para el repositorio: datos comunes + los propios del tipo.
+     * El metodo es final para que todos los subtipos produzcan la misma forma. [ENCAPSULAMIENTO]
+     *
+     * @return array<string, mixed>
+     */
+    final public function aFila(): array
     {
         return [
-            'codigo' => $this->codigo,
+            'tipo' => static::TIPO,
             'nombre' => $this->nombre,
-            'tipo' => static::class,
-            'reservas' => $this->reservas,
-        ];
+            'capacidad' => $this->capacidad,
+            'tarifa_base' => $this->tarifaBase,
+            'imagen' => $this->imagen,
+        ] + $this->datosEspecificos();
+    }
+
+    /** @return array<string, mixed> */
+    public function aArray(): array // [INTERFAZ]
+    {
+        return [
+            'id' => $this->id,
+            'tipo' => static::TIPO,
+            'nombre' => $this->nombre,
+            'capacidad' => $this->capacidad,
+            'tarifa_base' => $this->tarifaBase,
+            'imagen' => $this->imagen,
+        ] + $this->datosEspecificos();
     }
 }

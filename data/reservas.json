@@ -1,26 +1,32 @@
 [
     {
-        "id": "R-001",
-        "cliente": "Equipo Los Titanes",
-        "espacio": "FUT-01",
-        "inicio": "2026-09-10 18:00",
+        "id": 0,
+        "cliente": "Facultad de Ingenieria",
+        "espacio": "Sala Aula Magna",
+        "fecha": "2026-10-05",
+        "hora_inicio": "09:00",
+        "hora_fin": "11:00",
         "horas": 2,
-        "costo": 87.5
+        "costo": 240
     },
     {
-        "id": "R-002",
-        "cliente": "Maria Gonzalez",
-        "espacio": "TEN-01",
-        "inicio": "2026-09-10 10:00",
-        "horas": 1,
-        "costo": 23
+        "id": 0,
+        "cliente": "Ana Torres",
+        "espacio": "Escritorio Coworking 1",
+        "fecha": "2026-10-05",
+        "hora_inicio": "08:00",
+        "hora_fin": "12:00",
+        "horas": 4,
+        "costo": 48
     },
     {
-        "id": "R-003",
-        "cliente": "Club Nadadores UNI",
-        "espacio": "PIS-01",
-        "inicio": "2026-09-10 16:00",
+        "id": 0,
+        "cliente": "Club Deportivo UNI",
+        "espacio": "Cancha de futbol 11",
+        "fecha": "2026-10-05",
+        "hora_inicio": "17:00",
+        "hora_fin": "19:00",
         "horas": 2,
-        "costo": 80
+        "costo": 225
     }
 ]
