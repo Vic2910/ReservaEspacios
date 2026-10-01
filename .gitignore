@@ -1,3 +1,19 @@
 vendor/
-.phpunit.result.cache
+composer.phar
 .env
+.env.local
+
+# Credenciales reales: solo se sube config.example.php
+config/config.php
+
+# Imagenes subidas por los usuarios: el contenido no se sube
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Archivos de sistema y editores
+.phpunit.result.cache
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
