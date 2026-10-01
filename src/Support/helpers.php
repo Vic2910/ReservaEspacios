@@ -95,3 +95,36 @@ if (!function_exists('clase_error')) {
         return isset($errores[$campo]) ? 'campo campo-error' : 'campo';
     }
 }
+
+if (!function_exists('id_solicitud')) {
+    /**
+     * Identificador de la peticion (GET o POST) validado como entero.
+     * Devuelve null si no viene o si el valor no es un numero.
+     */
+    function id_solicitud(): ?int
+    {
+        $valor = $_REQUEST['id'] ?? null;
+
+        if ($valor === null || !preg_match('/^\d+$/', (string) $valor)) {
+            return null;
+        }
+
+        return (int) $valor;
+    }
+}
+
+if (!function_exists('fecha_solicitud')) {
+    /** Fecha de la peticion validada; si no existe se usa la fecha actual. */
+    function fecha_solicitud(string $porDefecto): string
+    {
+        $valor = (string) ($_GET['fecha'] ?? '');
+
+        if (!preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $valor, $partes)
+            || !checkdate((int) $partes[2], (int) $partes[3], (int) $partes[1])
+        ) {
+            return $porDefecto;
+        }
+
+        return $valor;
+    }
+}
