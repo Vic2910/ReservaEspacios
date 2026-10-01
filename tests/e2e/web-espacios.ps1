@@ -59,6 +59,16 @@ Check ($errores -match 'ubicacion') 'error por campo: ubicacion especifica del t
 $res = DoCurl @('-s','-b',$jar,'-c',$jar,'-o','NUL','-w','%{http_code} %{redirect_url}','-X','POST','-d','csrf=incorrecto&tipo=sala&nombre=X&capacidad=2&tarifa_base=10&ubicacion=Y',"$base/espacios/guardar.php")
 Check ($res -like '302*crear.php*') "POST sin token valido redirige -> $res"
 
+# 4b) Limpieza previa del alta: si una corrida anterior dejo el espacio de
+# prueba (la elimina la parte 2), se borra por la propia aplicacion para
+# que esta parte pueda repetirse sin depender de la otra (idempotencia).
+$listadoPre = DoCurl @('-s','-b',$jar,'-c',$jar,"$base/espacios/index.php")
+foreach ($fila in ($listadoPre -split '<tr>')) {
+    if ($fila -match 'Sala E2E Con Imagen' -and $fila -match 'ver\.php\?id=(\d+)') {
+        $idPrevio = $Matches[1]
+        DoCurl @('-s','-b',$jar,'-c',$jar,'-o','NUL','-X','POST','-d',"csrf=$token&id=$idPrevio","$base/espacios/eliminar.php") | Out-Null
+    }
+}
 # 5) Alta valida con imagen PNG real
 $res = DoCurl @('-s','-b',$jar,'-c',$jar,'-o','NUL','-w','%{http_code} %{redirect_url}','-X','POST','-F',"csrf=$token",'-F','tipo=sala','-F','nombre=Sala E2E Con Imagen','-F','capacidad=25','-F','tarifa_base=77.50','-F','ubicacion=Edificio E2E, sala 1','-F',"imagen=@$tmp\prueba.png;type=image/png","$base/espacios/guardar.php")
 Check ($res -like '302*espacios/index.php*') "alta valida con imagen -> $res"
