@@ -36,6 +36,7 @@ Check ($panelHtml -match '<main class="contenedor">') 'panel: main'
 Check ($panelHtml -match '<footer class="site-footer">') 'panel: footer'
 Check (-not ($panelHtml -match 'style=')) 'panel: sin estilos en linea'
 Check (-not ($panelHtml -match '\binstanceof\b|get_class\(')) 'panel: sin instanceof/get_class'
+Check (-not ($panelHtml -match '>Array<')) 'panel: sin valores Array impresos por error'
 
 # 3) Token CSRF y validacion del servidor (alta invalida)
 DoCurl @('-s','-b',$jar,'-c',$jar,'-o',"$tmp\crear.html","$base/espacios/crear.php") | Out-Null
