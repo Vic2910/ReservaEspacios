@@ -98,8 +98,14 @@ final class GestorImagenes
         // basename() evita cualquier intento de salirse del directorio. [SEGURIDAD]
         $ruta = $this->directorio . '/' . basename($nombre);
 
-        if (is_file($ruta)) {
-            unlink($ruta);
+        // Reintento breve: en Windows el antivirus puede bloquear el archivo
+        // recien escrito un instante y dejar una imagen huerfana en uploads/.
+        for ($intento = 0; $intento < 3 && is_file($ruta); $intento++) {
+            if (@unlink($ruta)) {
+                return;
+            }
+
+            usleep(100_000);
         }
     }
 
