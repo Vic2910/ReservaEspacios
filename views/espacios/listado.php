@@ -39,7 +39,7 @@
                         </td>
                         <td><?= e($espacio->getNombre()) ?></td>
                         <td><span class="insignia"><?= e($espacio->descripcionTipo()) ?></span></td>
-                        <td><?= e($espacio->getCapacidad()) ?> personas</td>
+                        <td><?= e($espacio->getCapacidad()) ?> <?= $espacio->getCapacidad() === 1 ? 'persona' : 'personas' ?></td>
                         <td class="numerico">S/ <?= e(number_format($espacio->getTarifaBase(), 2)) ?></td>
                         <td><?= e($espacio->datoCalculado()) ?></td>
                         <td>

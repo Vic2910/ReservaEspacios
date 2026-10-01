@@ -59,7 +59,7 @@ if ($espacio === null) {
 /** @var Espacio $espacio */
 $filas = [
     'Tipo' => $espacio->descripcionTipo(),
-    'Capacidad' => $espacio->getCapacidad() . ' personas',
+    'Capacidad' => $espacio->getCapacidad() . ($espacio->getCapacidad() === 1 ? ' persona' : ' personas'),
     'Tarifa base' => 'S/ ' . number_format($espacio->getTarifaBase(), 2) . ' por hora',
     'Imagen' => $espacio->getImagen() !== null ? 'Fotografia propia' : 'Imagen por defecto',
 ];

@@ -34,7 +34,7 @@ use App\Factories\EspacioFactory;
                 <dd><span class="insignia"><?= e($espacio->descripcionTipo()) ?></span></dd>
 
                 <dt>Capacidad</dt>
-                <dd><?= e($espacio->getCapacidad()) ?> personas</dd>
+                <dd><?= e($espacio->getCapacidad()) ?> <?= $espacio->getCapacidad() === 1 ? 'persona' : 'personas' ?></dd>
 
                 <dt>Tarifa base</dt>
                 <dd>S/ <?= e(number_format($espacio->getTarifaBase(), 2)) ?> por hora</dd>
