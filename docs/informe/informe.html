@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Informe tecnico · ReservaEspacios · Fase 2</title>
+<style>
+  @page { size: A4; margin: 14mm 13mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 10pt; line-height: 1.45; color: #17203b; margin: 0;
+  }
+  h1 { font-size: 20pt; color: #1f3a93; margin: 0 0 6px; }
+  h2 { font-size: 14pt; color: #1f3a93; border-bottom: 2px solid #1f3a93;
+       padding-bottom: 3px; margin: 22px 0 10px; }
+  h3 { font-size: 11.5pt; color: #2c3e6b; margin: 14px 0 6px; }
+  p { margin: 7px 0; text-align: justify; }
+  ul, ol { margin: 7px 0 7px 20px; padding: 0; }
+  li { margin: 4px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 8.6pt; margin: 7px 0; }
+  th, td { border: 1px solid #b9c2d9; padding: 4px 6px; text-align: left;
+           vertical-align: top; }
+  th { background: #1f3a93; color: #fff; font-weight: 600; }
+  tr:nth-child(even) td { background: #f2f5fc; }
+  code, .ruta { font-family: Consolas, monospace; font-size: 9pt;
+                background: #eef1fa; padding: 0 3px; border-radius: 3px; }
+  pre { background: #f4f6fc; border-left: 3px solid #1f3a93; padding: 8px 10px;
+        font-size: 8.5pt; overflow: hidden; white-space: pre-wrap; margin: 8px 0; }
+  .portada { text-align: center; padding-top: 70mm; }
+  .portada .institucion { letter-spacing: 3px; font-size: 11pt;
+      text-transform: uppercase; color: #5a6480; }
+  .portada .rol { font-size: 13pt; color: #444; margin-top: 4px; }
+  .portada .caja { border: 2px solid #1f3a93; border-radius: 8px;
+      padding: 14px 26px; display: inline-block; margin-top: 26px; text-align: left; }
+  .portada .caja div { margin: 4px 0; }
+  .portada .fecha { margin-top: 40px; color: #555; }
+  .pagina { page-break-before: always; }
+  .captura { width: 100%; border: 1px solid #b9c2d9; border-radius: 4px; }
+  .grid2 { display: flex; gap: 10px; margin: 10px 0; }
+  .grid2 > div { flex: 1; }
+  .pie-foto { font-size: 8.3pt; color: #555; text-align: center; margin: 2px 0 9px; }
+  .nota { background: #eef1fa; border-left: 4px solid #1f3a93;
+      padding: 7px 10px; font-size: 9.5pt; margin: 10px 0; }
+  .destacado { font-weight: 600; color: #1f3a93; }
+  svg text { font-family: "Segoe UI", Arial, sans-serif; }
+  .leyenda { font-size: 8.5pt; color: #555; text-align: center; }
+</style>
+</head>
+<body>
+
+<!-- ============================ PORTADA ============================ -->
+<section class="portada">
+  <div class="institucion">TORNEO-UNI &middot; Fase 2</div>
+  <h1>ReservaEspacios</h1>
+  <div class="rol">Aplicacion web para la reserva de espacios<br>
+    Caso de estudio A &middot; Reservas de espacios (salas, escritorios y canchas)</div>
+
+  <div class="caja">
+    <div><strong>Integrantes:</strong></div>
+    <div>Victor Rafael Arevalo Sierra</div>
+    <div>Gabriela Abigail Diaz Rivera</div>
+    <div>Victor Manuel Mira Hernandez</div>
+    <div>Diego Marcelo Rivera Lopez</div>
+    <div>Luis Jose Rodriguez Centeno</div>
+    <div style="margin-top:10px"><strong>Repositorio:</strong>
+      https://github.com/Cent0403/ReservaEspacios (etiqueta <code>v2.0</code>)</div>
+  </div>
+
+  <div class="fecha">1 de octubre de 2026</div>
+</section>
+
+<!-- ==================== 2. CAMBIOS RESPECTO A LA PROPUESTA ==================== -->
+<section class="pagina">
+  <h2>2. Cambios respecto a la propuesta de la Fase 1</h2>
+
+  <p>El modelo de clases de la Fase 1 se mantuvo como base, pero la evolucion
+  hacia una aplicacion web exigo ajustes que se documentan a continuacion.</p>
+
+  <table>
+    <thead>
+      <tr><th style="width:26%">Area</th><th style="width:37%">Fase 1 (propuesta)</th>
+      <th style="width:37%">Fase 2 (implementado)</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Tipos de espacio</td>
+        <td>Entidades de ejemplo de otra linea: <code>CanchaFutbol</code>,
+            <code>CanchaTenis</code> y <code>Piscina</code>.</td>
+        <td>Se ajusta al Caso A asignado: <strong>Sala</strong> (sala de
+            reunion), <strong>Escritorio</strong> y <strong>Cancha</strong>
+            (deporte), que son los tipos que exige la r&uacute;brica.</td>
+      </tr>
+      <tr>
+        <td>Interfaz <code>Reservable</code></td>
+        <td>Inclu&iacute;a <code>hayDisponibilidad()</code> junto a
+            <code>calcularCosto()</code>.</td>
+        <td>La disponibilidad ya no es una pregunta al objeto: dos reservas se
+            traslapan o no seg&uacute;n los datos actuales de la base, se
+            consulta con SQL (<code>hora_inicio &lt; fin AND hora_fin &gt;
+            inicio</code>). La interfaz qued&oacute; reducida a
+            <code>calcularCosto(float $horas, bool $horarioPico)</code>, que es
+            la parte genuinamente polim&oacute;rfica.</td>
+      </tr>
+      <tr>
+        <td>Namespace de servicios</td>
+        <td><code>App\Servicios\ArchivoReservas</code>.</td>
+        <td>Se aline&oacute; a los nombres en ingles del autoloading PSR-4:
+            <code>App\Services\ArchivoReservas</code> (commits de refactor).</td>
+      </tr>
+      <tr>
+        <td>Persistencia</td>
+        <td>Arreglos en <code>main.php</code> y archivo JSON.</td>
+        <td>MySQL/MariaDB con PDO y consultas preparadas; el JSON de la Fase 1
+            se conserva solo como demostraci&oacute;n de escritorio
+            (<code>php main.php</code>).</td>
+      </tr>
+      <tr>
+        <td>Capas nuevas</td>
+        <td>No exist&iacute;an.</td>
+        <td>Repositorios, f&aacute;brica, validador, servicio de im&aacute;genes,
+            helpers de sesi&oacute;n/CSRF, layout y vistas, p&aacute;ginas de
+            <code>public/</code> y pruebas end-to-end.</td>
+      </tr>
+      <tr>
+        <td>Recargos y "dato calculado"</td>
+        <td>Tarifas fijas por tipo en la demo.</td>
+        <td>Recargo de horario pico (desde las 17:00): Sala 1,20 &middot;
+            Escritorio 1,10 &middot; Cancha 1,25, y un <em>dato calculado</em>
+            distinto por tipo (2 h, 4 h y 1 h) que hace visible el polimorfismo
+            en listados, fichas y reporte.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="nota"><strong>Lo que no cambió:</strong> la jerarqu&iacute;a
+  <code>Espacio</code> abstracta con m&eacute;todos polim&oacute;rficos, la
+  entidad <code>Reserva</code> compuesta por un <code>Espacio</code>, las
+  interfaces <code>Reservable</code> y <code>Exportable</code>, y la prueba de
+  humo de la Fase 1 (sigue funcionando con <code>php tests/smoke.php</code>).</div>
+
+  <h3>Respuesta a la reflexi&oacute;n 1 &middot; ¿Por qu&eacute; tabla &uacute;nica?</h3>
+  <p>Se eligi&oacute; la <strong>tabla &uacute;nica con columna <code>tipo</code></strong>
+  (Single Table Inheritance) porque el listado, el reporte y el panel necesitan
+  ordenar y contar los tres tipos juntos sin hacer <code>JOIN</code>s, y porque
+  la aplicaci&oacute;n siempre recupera espacios completos: una sola consulta
+  <code>SELECT *</code> trae todo y la f&aacute;brica decide qu&eacute; subclase
+  instanciar. La desventaja de la opci&oacute;n que no se eligi&oacute; (tabla
+  base + tabla por tipo) es que exige un <code>JOIN</code> por cada lectura y
+  tres tablas que mantener en cada consulta de listado; adem&aacute;s, al ser la
+  base de datos peque&ntilde;a (un centro deportivo), la normalizaci&oacute;n
+  extra no aportaba y s&iacute; complejaba los <code>CHECK</code> y la
+  reutilizaci&oacute;n de c&oacute;digo.</p>
+</section>
+
+<!-- ==================== 3. MODELO RELACIONAL ==================== -->
+<section class="pagina">
+  <h2>3. Modelo relacional y estrategia de herencia</h2>
+
+  <h3>Diagrama entidad-relaci&oacute;n</h3>
+  <svg viewBox="0 0 660 330" width="100%" height="300" role="img"
+       aria-label="Diagrama entidad-relacion">
+    <defs>
+      <marker id="punta" markerWidth="10" markerHeight="8" refX="9" refY="4"
+              orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#1f3a93"/></marker>
+    </defs>
+    <!-- entidad espacios -->
+    <rect x="20" y="20" width="250" height="250" rx="6" fill="#eef1fa"
+          stroke="#1f3a93" stroke-width="2"/>
+    <rect x="20" y="20" width="250" height="30" rx="6" fill="#1f3a93"/>
+    <text x="145" y="40" text-anchor="middle" fill="#fff" font-size="14"
+          font-weight="bold">espacios</text>
+    <text x="32" y="68" font-size="11" font-weight="bold">id  PK</text>
+    <text x="32" y="86" font-size="11" font-weight="bold" fill="#b03030">tipo  (CHECK)</text>
+    <text x="32" y="104" font-size="11">nombre  UNIQUE</text>
+    <text x="32" y="122" font-size="11">capacidad  (&gt; 0)</text>
+    <text x="32" y="140" font-size="11">tarifa_base  (&gt; 0)</text>
+    <text x="32" y="158" font-size="11">imagen  (NULL)</text>
+    <text x="32" y="176" font-size="11" fill="#b03030">ubicacion  (sala)</text>
+    <text x="32" y="194" font-size="11" fill="#b03030">zona  (escritorio)</text>
+    <text x="32" y="212" font-size="11" fill="#b03030">deporte  (cancha)</text>
+    <text x="32" y="238" font-size="9.5" fill="#556">Una fila = un espacio; las tres</text>
+    <text x="32" y="252" font-size="9.5" fill="#556">columnas rojas admiten NULL</text>
+    <!-- entidad reservas -->
+    <rect x="390" y="40" width="250" height="170" rx="6" fill="#eef1fa"
+          stroke="#1f3a93" stroke-width="2"/>
+    <rect x="390" y="40" width="250" height="30" rx="6" fill="#1f3a93"/>
+    <text x="515" y="60" text-anchor="middle" fill="#fff" font-size="14"
+          font-weight="bold">reservas</text>
+    <text x="402" y="88" font-size="11" font-weight="bold">id  PK</text>
+    <text x="402" y="106" font-size="11" font-weight="bold" fill="#b03030">espacio_id  FK</text>
+    <text x="402" y="124" font-size="11">fecha</text>
+    <text x="402" y="142" font-size="11">hora_inicio</text>
+    <text x="402" y="160" font-size="11">hora_fin  (&gt; inicio)</text>
+    <text x="402" y="178" font-size="11">cliente</text>
+    <text x="402" y="198" font-size="9.5" fill="#556">FK con ON DELETE RESTRICT</text>
+    <!-- relacion -->
+    <line x1="270" y1="145" x2="384" y2="130" stroke="#1f3a93"
+          stroke-width="2.5" marker-end="url(#punta)"/>
+    <text x="285" y="118" font-size="13" font-weight="bold" fill="#1f3a93">1</text>
+    <text x="356" y="160" font-size="13" font-weight="bold" fill="#1f3a93">N</text>
+    <text x="272" y="200" font-size="10" fill="#333">tiene (1..N reservas)</text>
+    <!-- restricciones -->
+    <rect x="20" y="285" width="620" height="34" rx="5" fill="#fff8e6"
+          stroke="#d9a441"/>
+    <text x="34" y="300" font-size="9.5" fill="#6a4b00">Restricciones: CHECK tipo
+      en ('sala','escritorio','cancha') · CHECK capacidad &gt; 0 y tarifa_base &gt; 0 ·</text>
+    <text x="34" y="313" font-size="9.5" fill="#6a4b00">CHECK tipo&lt;&gt;'sala' OR ubicacion IS NOT NULL (y an&aacute;logos para zona/deporte) · UNIQUE(nombre)</text>
+  </svg>
+  <p class="leyenda">Figura 1. Diagrama entidad-relaci&oacute;n del Caso A.</p>
+
+  <h3>Estrategia elegida: tabla &uacute;nica con columna <code>tipo</code></h3>
+  <p><code>espacios</code> guarda los campos comunes de las tres subclases y
+  tres columnas espec&iacute;ficas que solo se llenan cuando el <code>tipo</code>
+  corresponde (si no, quedan en <code>NULL</code>, reforzado con
+  <code>CHECK</code>). La l&oacute;gica de decidir qu&eacute; clase se construye
+  a partir de una fila vive &uacute;nicamente en
+  <code>EspacioFactory::desdeFila()</code>.</p>
+
+  <p><code>reservas</code> se relaciona con <code>espacios</code> mediante
+  <code>espacio_id</code> con <code>ON DELETE RESTRICT</code>: no se puede
+  borrar un espacio que tenga reservas (el sistema lo avisa en lugar de
+  borrar en cascada). Adem&aacute;s, el horario tiene un
+  <code>CHECK (hora_fin &gt; hora_inicio)</code> y la prohibici&oacute;n de
+  traslapes se verifica en la capa de acceso a datos con una consulta que
+  compara intervalos.</p>
+</section>
+
+<!-- ==================== 4. DIAGRAMA DE CLASES ==================== -->
+<section class="pagina">
+  <h2>4. Diagrama de clases actualizado</h2>
+
+  <svg viewBox="0 0 680 560" width="100%" height="530" role="img"
+       aria-label="Diagrama de clases de la Fase 2">
+    <defs>
+      <marker id="flecha" markerWidth="12" markerHeight="9" refX="11" refY="4.5"
+              orient="auto">
+        <path d="M0,0 L12,4.5 L0,9 L3,4.5 z" fill="#1f3a93"/>
+      </marker>
+      <marker id="punta2" markerWidth="10" markerHeight="8" refX="9" refY="4"
+              orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#1f3a93"/></marker>
+    </defs>
+
+    <!-- interfaz Reservable -->
+    <rect x="20" y="20" width="200" height="54" rx="6" fill="#f4e9fb"
+          stroke="#7a3fb0" stroke-width="2" stroke-dasharray="6 3"/>
+    <text x="120" y="40" text-anchor="middle" font-size="12.5" font-weight="bold"
+          fill="#5b2c86">&lt;&lt;interfaz&gt;&gt; Reservable</text>
+    <text x="120" y="58" text-anchor="middle" font-size="10.5" fill="#5b2c86">+ calcularCosto(horas, pico)</text>
+
+    <!-- Espacio abstracta -->
+    <rect x="20" y="110" width="260" height="150" rx="6" fill="#eef1fa"
+          stroke="#1f3a93" stroke-width="2"/>
+    <rect x="20" y="110" width="260" height="26" rx="6" fill="#1f3a93"/>
+    <text x="150" y="128" text-anchor="middle" fill="#fff" font-size="13"
+          font-weight="bold">«abstract» Espacio</text>
+    <text x="32" y="152" font-size="10.5"># id : int</text>
+    <text x="32" y="169" font-size="10.5"># nombre : string</text>
+    <text x="32" y="186" font-size="10.5"># capacidad : int</text>
+    <text x="32" y="203" font-size="10.5"># tarifaBase : float</text>
+    <text x="32" y="220" font-size="10.5"># imagen : ?string</text>
+    <text x="32" y="237" font-size="10.5">+ calcularCosto() {abstracta}</text>
+    <text x="32" y="252" font-size="10.5">+ datoCalculado() {abstracta}</text>
+    <line x1="120" y1="74" x2="130" y2="108" stroke="#7a3fb0" stroke-width="2"
+          marker-end="url(#flecha)"/>
+
+    <!-- subclases -->
+    <rect x="20" y="300" width="150" height="64" rx="6" fill="#ffffff"
+          stroke="#1f3a93" stroke-width="2"/>
+    <text x="95" y="320" text-anchor="middle" font-size="12" font-weight="bold"
+          fill="#1f3a93">Sala</text>
+    <text x="95" y="338" text-anchor="middle" font-size="10">- ubicacion : string</text>
+    <text x="95" y="354" text-anchor="middle" font-size="10">+ calcularCosto() x1,20</text>
+
+    <rect x="185" y="300" width="150" height="64" rx="6" fill="#ffffff"
+          stroke="#1f3a93" stroke-width="2"/>
+    <text x="260" y="320" text-anchor="middle" font-size="12" font-weight="bold"
+          fill="#1f3a93">Escritorio</text>
+    <text x="260" y="338" text-anchor="middle" font-size="10">- zona : string</text>
+    <text x="260" y="354" text-anchor="middle" font-size="10">+ calcularCosto() x1,10</text>
+
+    <rect x="350" y="300" width="150" height="64" rx="6" fill="#ffffff"
+          stroke="#1f3a93" stroke-width="2"/>
+    <text x="425" y="320" text-anchor="middle" font-size="12" font-weight="bold"
+          fill="#1f3a93">Cancha</text>
+    <text x="425" y="338" text-anchor="middle" font-size="10">- deporte : string</text>
+    <text x="425" y="354" text-anchor="middle" font-size="10">+ calcularCosto() x1,25</text>
+
+    <line x1="95" y1="300" x2="95" y2="286" stroke="#1f3a93" stroke-width="2"/>
+    <line x1="260" y1="300" x2="260" y2="286" stroke="#1f3a93" stroke-width="2"/>
+    <line x1="425" y1="300" x2="425" y2="286" stroke="#1f3a93" stroke-width="2"/>
+    <line x1="95" y1="286" x2="425" y2="286" stroke="#1f3a93" stroke-width="2"/>
+    <line x1="260" y1="286" x2="260" y2="262" stroke="#1f3a93" stroke-width="2"
+          marker-end="url(#flecha)"/>
+
+    <!-- Reserva -->
+    <rect x="520" y="110" width="150" height="132" rx="6" fill="#eef1fa"
+          stroke="#1f3a93" stroke-width="2"/>
+    <rect x="520" y="110" width="150" height="26" rx="6" fill="#1f3a93"/>
+    <text x="595" y="128" text-anchor="middle" fill="#fff" font-size="13"
+          font-weight="bold">Reserva</text>
+    <text x="530" y="152" font-size="10.5">- id : int</text>
+    <text x="530" y="169" font-size="10.5">- fecha : string</text>
+    <text x="530" y="186" font-size="10.5">- horaInicio/Fin</text>
+    <text x="530" y="203" font-size="10.5">- cliente : string</text>
+    <text x="530" y="220" font-size="10.5">- espacio : Espacio</text>
+    <text x="530" y="237" font-size="10.5">+ costoEstimado()</text>
+    <line x1="520" y1="200" x2="282" y2="180" stroke="#1f3a93" stroke-width="2"
+          marker-end="url(#punta2)"/>
+    <text x="380" y="178" font-size="10.5" fill="#333">composicion 1..1</text>
+
+    <!-- fachada: fabrica -->
+    <rect x="20" y="410" width="300" height="130" rx="6" fill="#eaf7ee"
+          stroke="#1f7a41" stroke-width="2"/>
+    <rect x="20" y="410" width="300" height="26" rx="6" fill="#1f7a41"/>
+    <text x="170" y="428" text-anchor="middle" fill="#fff" font-size="12.5"
+          font-weight="bold">EspacioFactory / ReservaFactory</text>
+    <text x="32" y="452" font-size="10.5">+ tipos() : array</text>
+    <text x="32" y="469" font-size="10.5">+ camposEspecificos(tipo) : array</text>
+    <text x="32" y="486" font-size="10.5">+ desdeFila(fila) : Espacio</text>
+    <text x="32" y="503" font-size="10.5">+ desdeFormulario(datos) : Espacio</text>
+    <text x="32" y="525" font-size="10" fill="#1f7a41" font-weight="bold">Único lugar que conoce las subclases</text>
+
+    <!-- repositorios -->
+    <rect x="350" y="410" width="320" height="64" rx="6" fill="#fff6ec"
+          stroke="#b05a1f" stroke-width="2"/>
+    <rect x="350" y="410" width="320" height="26" rx="6" fill="#b05a1f"/>
+    <text x="510" y="428" text-anchor="middle" fill="#fff" font-size="12.5"
+          font-weight="bold">EspacioRepositorio · ReservaRepositorio</text>
+    <text x="362" y="452" font-size="10.5">__construct(PDO $pdo, ...) · CRUD + buscarPorId</text>
+    <text x="362" y="467" font-size="10.5">existeTraslape() · contarPorTipo() · listarPorFecha()</text>
+
+    <!-- validador y gestor -->
+    <rect x="350" y="490" width="155" height="50" rx="6" fill="#f4e9fb"
+          stroke="#7a3fb0" stroke-width="2"/>
+    <text x="427" y="510" text-anchor="middle" font-size="12" font-weight="bold"
+          fill="#5b2c86">Validador</text>
+    <text x="427" y="528" text-anchor="middle" font-size="10">errores[] por campo</text>
+
+    <rect x="515" y="490" width="155" height="50" rx="6" fill="#f4e9fb"
+          stroke="#7a3fb0" stroke-width="2"/>
+    <text x="592" y="510" text-anchor="middle" font-size="12" font-weight="bold"
+          fill="#5b2c86">GestorImagenes</text>
+    <text x="592" y="528" text-anchor="middle" font-size="10">MIME · 2 MB · aleatorio</text>
+
+    <line x1="430" y1="410" x2="330" y2="330" stroke="#b05a1f" stroke-width="2"
+          marker-end="url(#punta2)"/>
+    <text x="352" y="378" font-size="10" fill="#b05a1f">lee/ escribe</text>
+  </svg>
+  <p class="leyenda">Figura 2. Diagrama de clases de la Fase 2: dominio,
+  f&aacute;brica, repositorios y servicios auxiliares.</p>
+</section>
+
+<!-- ==================== 5. CORRESPONDENCIA CLASES-TABLAS ==================== -->
+<section class="pagina">
+  <h2>5. Correspondencia clases &harr; tablas</h2>
+
+  <table>
+    <thead>
+      <tr><th style="width:20%">Clase (namespace)</th><th style="width:16%">Tabla</th>
+      <th style="width:36%">Columnas</th><th style="width:28%">Observaciones</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>App\Espacios\Espacio</code> (abstracta)</td><td><code>espacios</code></td>
+        <td><code>id</code>, <code>tipo</code>, <code>nombre</code>,
+            <code>capacidad</code>, <code>tarifa_base</code>, <code>imagen</code></td>
+        <td>Una fila por objeto; <code>tipo</code> guarda la subclase concreta.</td></tr>
+      <tr><td><code>App\Espacios\Sala</code></td><td><code>espacios</code></td>
+        <td>comunes + <code>ubicacion</code></td>
+        <td><code>ubicacion</code> NOT NULL cuando <code>tipo='sala'</code> (CHECK).</td></tr>
+      <tr><td><code>App\Espacios\Escritorio</code></td><td><code>espacios</code></td>
+        <td>comunes + <code>zona</code></td>
+        <td><code>zona</code> NOT NULL cuando <code>tipo='escritorio'</code> (CHECK).</td></tr>
+      <tr><td><code>App\Espacios\Cancha</code></td><td><code>espacios</code></td>
+        <td>comunes + <code>deporte</code></td>
+        <td><code>deporte</code> NOT NULL cuando <code>tipo='cancha'</code> (CHECK).</td></tr>
+      <tr><td><code>App\Entidades\Reserva</code></td><td><code>reservas</code></td>
+        <td><code>id</code>, <code>espacio_id</code>, <code>fecha</code>,
+            <code>hora_inicio</code>, <code>hora_fin</code>, <code>cliente</code></td>
+        <td><code>espacio_id</code> es la FK a <code>espacios.id</code>; la
+            propiedad en memoria es un objeto <code>Espacio</code> (composici&oacute;n).</td></tr>
+      <tr><td><code>App\factories\EspacioFactory</code></td><td>&mdash;</td>
+        <td>Une <code>tipo &rarr; clase</code> en un solo mapa</td>
+        <td>No persiste: solo traduce fila/formulario a objeto y viceversa.</td></tr>
+      <tr><td><code>App\Validation\Validador</code></td><td>&mdash;</td>
+        <td>&mdash;</td><td>Acumula errores por campo antes de tocar la base.</td></tr>
+      <tr><td><code>App\Services\GestorImagenes</code></td><td><code>espacios.imagen</code></td>
+        <td>Guarda solo el nombre aleatorio generado (p. ej.
+            <code>5b37c6b5….png</code>) en <code>public/uploads/</code></td>
+        <td>Nunca se guarda el nombre original ni la ruta completa.</td></tr>
+      <tr><td><code>App\Database\Conexion</code></td><td>&mdash;</td>
+        <td>&mdash;</td><td>Devuelve la instancia <code>PDO</code> (inyecci&oacute;n de dependencias).</td></tr>
+    </tbody>
+  </table>
+
+  <h2>6. Tabla de validaciones</h2>
+
+  <table>
+    <thead>
+      <tr><th style="width:15%">Campo</th><th style="width:26%">Regla en el cliente</th>
+      <th style="width:30%">Regla en el servidor</th><th style="width:29%">Mensaje mostrado</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Nombre (espacio)</td><td><code>required</code> y
+        <code>maxlength=80</code>; JS marca <code>aria-invalid</code>.</td>
+        <td><code>requerido()</code> + <code>maximo(80)</code> en
+            <code>Validador</code>.</td>
+        <td>&laquo;El campo Nombre es obligatorio.&raquo;</td></tr>
+      <tr><td>Capacidad</td><td><code>type="number" min="1" required</code>.</td>
+        <td><code>requerido()</code> + <code>enteroMayorQue(0)</code>.</td>
+        <td>&laquo;El campo Capacidad debe ser mayor que 0.&raquo;</td></tr>
+      <tr><td>Tarifa base</td><td><code>type="number" min="0.01" step="0.01" required</code>.</td>
+        <td><code>requerido()</code> + <code>decimalMayorQue(0)</code>.</td>
+        <td>&laquo;El campo Tarifa base debe ser mayor que 0.&raquo;</td></tr>
+      <tr><td>Tipo</td><td>Selector con las tres opciones; al cambiarlo se
+        muestran/ocultan los campos propios y se activa <code>required</code>.</td>
+        <td><code>unoDe()</code> contra <code>EspacioFactory::tipos()</code>.</td>
+        <td>&laquo;El campo Tipo de espacio no es valido.&raquo;</td></tr>
+      <tr><td>Ubicaci&oacute;n / Zona / Deporte</td><td>Solo visibles para su
+        tipo, con <code>required</code> solo cuando el tipo est&aacute; activo.</td>
+        <td><code>camposEspecificos()</code> seg&uacute;n el tipo elegido.</td>
+        <td>&laquo;El campo Ubicacion (edificio y salon) es obligatorio.&raquo;</td></tr>
+      <tr><td>Imagen</td><td><code>accept="image/*"</code> y vista previa en JS.</td>
+        <td>Error de carga PHP, tama&ntilde;o &le; 2 MB y MIME real con
+            <code>finfo</code> (JPG/PNG/WEBP).</td>
+        <td>&laquo;Formato no permitido. Use una imagen JPG, PNG o WEBP.&raquo; /
+            &laquo;…supera el tamano maximo permitido de 2 MB.&raquo;</td></tr>
+      <tr><td>Cliente (reserva)</td><td><code>required</code>,
+        <code>maxlength=80</code>.</td><td><code>requerido()</code> + <code>maximo(80)</code>.</td>
+        <td>&laquo;El campo Cliente es obligatorio.&raquo;</td></tr>
+      <tr><td>Fecha y horas</td><td><code>type="date"</code>,
+        <code>type="time"</code>; JS exige fin &gt; inicio.</td>
+        <td>Formato <code>YYYY-MM-DD</code> v&aacute;lido con <code>checkdate()</code>;
+            <code>hora_fin &gt; hora_inicio</code> (tambi&eacute;n CHECK en BD).</td>
+        <td>&laquo;El campo Hora fin debe ser posterior al campo Hora inicio.&raquo;</td></tr>
+      <tr><td>Traslape</td><td>No aplica (depende de los datos guardados).</td>
+        <td><code>ReservaRepositorio::existeTraslape()</code>: compara intervalos
+            del mismo espacio y fecha.</td>
+        <td>&laquo;El espacio ya tiene una reserva que se traslapa con ese horario.&raquo;</td></tr>
+      <tr><td>Token CSRF</td><td>Campo oculto en cada formulario.</td>
+        <td><code>csrf_verificar()</code> en todos los POST; sin token v&aacute;lido
+            no se procesa nada.</td>
+        <td>&laquo;La sesion expiro o el formulario no es valido. Intentalo de nuevo.&raquo;</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ==================== 7. EVIDENCIAS ==================== -->
+<section class="pagina">
+  <h2>7. Evidencias</h2>
+
+  <div class="grid2">
+    <div>
+      <img class="captura" src="../capturas/panel.png" alt="Panel inicial">
+      <div class="pie-foto">Figura 3. Panel inicial: totales, accesos y
+        reservas pr&oacute;ximas (p&aacute;gina 1 de 8).</div>
+    </div>
+    <div>
+      <img class="captura" src="../capturas/reporte.png" alt="Reporte web">
+      <div class="pie-foto">Figura 4. Reporte web del d&iacute;a con costos
+        polim&oacute;rficos (p&aacute;gina 8 de 8).</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div>
+      <img class="captura" src="../capturas/espacios-listado.png" alt="Listado de espacios">
+      <div class="pie-foto">Figura 5. Listado de espacios (CRUD: Read) con
+        imagen por defecto, insignia de tipo y dato calculado.</div>
+    </div>
+    <div>
+      <img class="captura" src="../capturas/espacios-formulario.png" alt="Formulario de alta">
+      <div class="pie-foto">Figura 6. Formulario de alta con fieldsets por
+        tipo, campos propios e imagen opcional.</div>
+    </div>
+  </div>
+</section>
+
+<section class="pagina">
+  <h2>7. Evidencias (continuaci&oacute;n)</h2>
+
+  <div class="grid2">
+    <div>
+      <img class="captura" src="../capturas/evidencia-errores-espacio.png"
+           alt="Errores de validacion del servidor">
+      <div class="pie-foto">Figura 7. Prueba de validaci&oacute;n en el servidor:
+        POST real con datos inv&aacute;lidos; aparecen los cuatro errores por
+        campo, se conservan los valores (0 y -5) y se aplican las clases
+        <code>.campo-error</code>.</div>
+    </div>
+    <div>
+      <img class="captura" src="../capturas/evidencia-errores-reserva.png"
+           alt="Reserva traslapada rechazada">
+      <div class="pie-foto">Figura 8. Reserva traslapada rechazada por el
+        servidor junto al campo Hora de inicio (validaci&oacute;n propia del
+        Caso A).</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div>
+      <img class="captura" src="../capturas/reservas-listado.png" alt="Listado de reservas">
+      <div class="pie-foto">Figura 9. Listado de la entidad relacionada Reserva
+        con horas y costo estimado.</div>
+    </div>
+    <div>
+      <img class="captura" src="../capturas/evidencia-confirmacion.png"
+           alt="Confirmacion de eliminacion">
+      <div class="pie-foto">Figura 10. Eliminaci&oacute;n con confirmaci&oacute;n:
+        el GET solo muestra la pantalla de confirmaci&oacute;n; el borrado
+        ocurre por POST con CSRF.</div>
+    </div>
+  </div>
+</section>
+
+<section class="pagina">
+  <h2>7. Evidencias (continuaci&oacute;n)</h2>
+
+  <div class="grid2">
+    <div>
+      <img class="captura" src="../capturas/espacios-ficha.png" alt="Ficha del espacio">
+      <div class="pie-foto">Figura 11. Ficha (detalle) del espacio con datos
+        espec&iacute;ficos de su tipo y costo calculado.</div>
+    </div>
+    <div>
+      <img class="captura" src="../capturas/reservas-formulario.png"
+           alt="Formulario de reserva">
+      <div class="pie-foto">Figura 12. Formulario de reserva (entidad
+        relacionada) con ayudas de horario.</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div>
+      <img class="captura" src="../capturas/reservas-ficha.png" alt="Ficha de reserva">
+      <div class="pie-foto">Figura 13. Ficha de la reserva con costo estimado
+        polim&oacute;rfico y marca de horario pico.</div>
+    </div>
+    <div>
+      <div class="nota" style="margin-top:30px">
+        <strong>Prueba automatizada:</strong> los scripts
+        <code>tests/e2e/web-espacios.ps1</code> y
+        <code>tests/e2e/web-reservas-imagenes.ps1</code> ejecutan m&aacute;s de
+        100 comprobaciones reales contra el servidor (HTTP 200, HTML5,
+        CSRF v&aacute;lido e inv&aacute;lido, PRG, errores por campo, subida y
+        reemplazo de imagen, rechazo de MIME falso y de archivos &gt; 2 MB,
+        eliminaci&oacute;n bloqueada por reservas, traslapes, reporte por fecha
+        y escape de salida) y terminan con <code>FALLOS=0</code>.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 8. LOS CUATRO PILARES ==================== -->
+<section class="pagina">
+  <h2>8. Justificaci&oacute;n de los cuatro pilares en la Fase 2</h2>
+
+  <table>
+    <thead>
+      <tr><th style="width:17%">Pilar</th><th style="width:41%">D&oacute;nde se mantiene en la versi&oacute;n web</th>
+      <th style="width:42%">Evidencia en el c&oacute;digo</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Abstracci&oacute;n</strong></td>
+        <td><code>Espacio</code> sigue siendo una clase abstracta que define el
+            contrato de c&aacute;lculo sin conocer detalles de cada tipo; las
+            interfaces <code>Reservable</code> y <code>Exportable</code>
+            delimitan capacidades.</td>
+        <td><code>src/Espacios/Espacio.php</code> (m&eacute;todos abstractos
+            <code>etiquetaTipo()</code>, <code>datoCalculado()</code>);
+            <code>[ABSTRACCION]</code> en su docblock.</td>
+      </tr>
+      <tr>
+        <td><strong>Encapsulamiento</strong></td>
+        <td>Propiedades <code>private</code>/<code>protected</code> con getters,
+            setters que validan y <code>aFila()</code> declarado
+            <code>final</code>: nadie altera el estado por fuera.</td>
+        <td><code>src/Espacios/Espacio.php</code>, <code>src/Entidades/Reserva.php</code>;
+            <code>[ENCAPSULAMIENTO]</code>.</td>
+      </tr>
+      <tr>
+        <td><strong>Herencia</strong></td>
+        <td><code>Sala</code>, <code>Escritorio</code> y <code>Cancha</code>
+            extienden <code>Espacio</code>, a&ntilde;aden su atributo propio y
+            reutilizan el constructor con <code>parent::__construct()</code>.</td>
+        <td><code>src/Espacios/{Sala,Escritorio,Cancha}.php</code>;
+            <code>[HERENCIA]</code>.</td>
+      </tr>
+      <tr>
+        <td><strong>Polimorfismo</strong></td>
+        <td>Los listados, las fichas y el reporte llaman
+            <code>calcularCosto()</code> y <code>datoCalculado()</code> sin
+            preguntar de qu&eacute; tipo es cada espacio; la &uacute;nica
+            decisi&oacute;n por tipo vive en la f&aacute;brica.</td>
+        <td><code>views/espacios/listado.php</code>,
+            <code>views/reporte.php</code>, <code>public/reporte.php</code>;
+            <code>[POLIMORFISMO]</code> y <code>[FABRICA]</code>.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Respuestas breves a las dem&aacute;s preguntas de reflexi&oacute;n</h3>
+
+  <p><strong>2 &middot; &iquest;Por qu&eacute; solo la f&aacute;brica conoce las
+  clases concretas?</strong> Porque es el &uacute;nico punto que debe cambiar
+  cuando aparece un tipo nuevo (por ejemplo, &laquo;Piscina&raquo;): basta con
+  crear la clase, agregar la etiqueta/tipo y una entrada en el mapa de
+  <code>EspacioFactory</code>. El resto del sistema (vistas, repositorios,
+  reporte) recorre <code>EspacioFactory::tipos()</code> y
+  <code>camposEspecificos()</code>, as&iacute; que no se toca. Si la decisi&oacute;n
+  se dispersara en las vistas, habr&iacute;a que buscar <code>instanceof</code>
+  por todo el c&oacute;digo.</p>
+
+  <p><strong>3 &middot; &iquest;Qu&eacute; ataque evitan las consultas
+  preparadas?</strong> La inyecci&oacute;n SQL. Entrada maliciosa:
+  <code>' OR '1'='1</code> como nombre de cliente, o
+  <code>10; DROP TABLE reservas;--</code> en un campo num&eacute;rico. Con
+  <code>prepare()/execute()</code> el valor viaja como dato en un
+  protocolo separado del c&oacute;digo SQL, as&iacute; que se interpreta
+  literalmente: no altera el <code>WHERE</code> ni ejecuta sentencias extra.
+  Prueba: el script e2e env&iacute;a <code>&lt;script&gt;alert(1)&lt;/script&gt;</code>
+  como nombre y el sistema lo guarda/escapa sin ejecutarlo.</p>
+
+  <p><strong>4 &middot; &iquest;Por qu&eacute; validar tambi&eacute;n en el
+  servidor?</strong> Porque el navegador es solo cortes&iacute;a: cualquiera
+  puede desactivar JavaScript, usar un cliente distinto (curl, un bot) o
+  reenviar el formulario a mano. El <code>Validador</code> y los repositorios
+  son la barrera real; el e2e lo demuestra enviando POSTs sin pasar por el
+  formulario.</p>
+
+  <p><strong>5 &middot; &iquest;Por qu&eacute; no confiar en la extensi&oacute;n
+  ni en el nombre original?</strong> Porque el nombre lo elige quien sube el
+  archivo (<code>foto.php.jpg</code>, caracteres de ruta, etc.). Se valida el
+  MIME real con <code>finfo</code> sobre el contenido y se guarda con un nombre
+  aleatorio generado por el sistema (<code>bin2hex(random_bytes(16))</code>),
+  con <code>basename()</code> al borrar.</p>
+
+  <p><strong>6 &middot; &iquest;Ventajas de los repositorios?</strong> El SQL
+  vive en un solo lugar (dos clases), las p&aacute;ginas de <code>public/</code>
+  solo piden operaciones de alto nivel, es f&aacute;cil reutilizar y probar
+  (el e2e ejercita los mismos m&eacute;todos), y cambiar la persistencia o
+  a&ntilde;adir una consulta no obliga a tocar las vistas.</p>
+</section>
+
+<!-- ==================== 9. DISTRIBUCION ==================== -->
+<section class="pagina">
+  <h2>9. Distribuci&oacute;n del trabajo</h2>
+
+  <p>El reparto acordado por el equipo y su reflejo en el historial de commits
+  (los aportes se confirman con <code>git shortlog -sne</code>):</p>
+
+  <table>
+    <thead>
+      <tr><th style="width:26%">Integrante</th><th style="width:48%">Areas a cargo</th>
+      <th style="width:26%">Estado en el historial</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Luis Jos&eacute; Rodr&iacute;guez Centeno<br><small>(Centeno)</small></td>
+        <td>Base de la Fase 1: modelo de clases de la propuesta, autoloading
+            PSR-4 con Composer, datos de arranque, prueba de humo
+            (<code>tests/smoke.php</code>) y documentaci&oacute;n inicial.</td>
+        <td>Commits del 2026-08-20 (Fase 1).</td>
+      </tr>
+      <tr>
+        <td>Victor Rafael Ar&eacute;valo Sierra<br><small>(Vic2910)</small></td>
+        <td>Base de datos y scripts; repositorios con PDO; f&aacute;bricas;
+            validador; servicio de im&aacute;genes; CRUD completo de espacios y
+            reservas; layout, vistas y CSS; reporte polim&oacute;rfico; pruebas
+            end-to-end; README e informe.</td>
+        <td>Commits <code>feat/fix/test/docs</code> de la Fase 2
+            (2026-10-01 en adelante).</td>
+      </tr>
+      <tr>
+        <td>Gabriela Abigail D&iacute;az Rivera</td>
+        <td>Validaci&oacute;n en cliente y accesibilidad: mensajes de
+            <code>public/js/formulario.js</code>, estados de error, etiquetas y
+            <code>aria-*</code> en los formularios.</td>
+        <td>Tareas detalladas en <code>docs/tareas-por-integrante.md</code>
+            (commits pendientes de subir con su usuario).</td>
+      </tr>
+      <tr>
+        <td>Victor Manuel Mira Hern&aacute;ndez</td>
+        <td>Contenido de las p&aacute;ginas y datos de prueba: textos de ayuda,
+            vac&iacute;os, ampliaci&oacute;n del <code>seed.sql</code> y revisi&oacute;n
+            de las fichas.</td>
+        <td>Tareas detalladas en <code>docs/tareas-por-integrante.md</code>
+            (commits pendientes de subir con su usuario).</td>
+      </tr>
+      <tr>
+        <td>Diego Marcelo Rivera L&oacute;pez</td>
+        <td>Reporte y utilidades: exportaci&oacute;n del reporte, filtros
+            adicionales y revisi&oacute;n de las pruebas.</td>
+        <td>Tareas detalladas en <code>docs/tareas-por-integrante.md</code>
+            (commits pendientes de subir con su usuario).</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="nota">Cada integrante sube sus commits con su propia identidad de
+  Git y en d&iacute;as distintos (la r&uacute;brica pide 5 commits por integrante
+  en 3 o m&aacute;s d&iacute;as). El historial no se modifica retroactivamente:
+  los aportes nuevos se agregan por encima de la etiqueta <code>v2.0</code>.</div>
+
+  <h2>10. Conclusiones y dificultades</h2>
+
+  <h3>Conclusiones</h3>
+  <ul>
+    <li>La POO &ldquo;no se rompe&rdquo; al pasar a web: las mismas clases de la
+        Fase 1 alimentan vistas y reportes; lo que cambi&oacute; fue d&oacute;nde
+        viven los datos (BD) y qui&eacute;n los pide (repositorios).</li>
+    <li>Concentrar la decisi&oacute;n de tipo en una sola f&aacute;brica hizo
+        posible que ninguna vista contenga <code>instanceof</code> ni
+        <code>switch</code> por tipo: agregar un cuarto tipo no toca las vistas.</li>
+    <li>PRG + mensajes flash + CSRF eliminaron los reenv&iacute;os duplicados y
+        la duda sobre si una acci&oacute;n se ejecut&oacute;.</li>
+    <li>Las pruebas end-to-end (m&aacute;s de 100 comprobaciones) detectaron
+        bugs reales durante el desarrollo, por ejemplo un panel que imprim&iacute;a
+        &laquo;Array&raquo; y un archivo de imagen que quedaba hu&eacute;rfano en
+        Windows al fallar un INSERT.</li>
+  </ul>
+
+  <h3>Dificultades encontradas</h3>
+  <ul>
+    <li><strong>Puertos de la base:</strong> el equipo convivi&oacute; con dos
+        servidores MySQL; se estandariz&oacute; la conexi&oacute;n a la MariaDB de
+        XAMPP que atiende PHPMyAdmin (puerto 3306) y se dej&oacute; documentado
+        en <code>config/config.example.php</code>.</li>
+    <li><strong>Borrado de im&aacute;genes en Windows:</strong> <code>unlink()</code>
+        puede fallar si el antivirus bloquea el archivo reci&eacute;n escrito;
+        se a&ntilde;adieron reintentos en <code>GestorImagenes::eliminar()</code>.</li>
+    <li><strong>Idempotencia de las pruebas:</strong> las primeras corridas
+        dejaban datos propios que romp&iacute;an la siguiente; se a&ntilde;adi&oacute;
+        limpieza previa para poder ejecutar la suite cuantas veces haga falta.</li>
+    <li><strong>Disponibilidad vs. polimorfismo:</strong> decidir qu&eacute;
+        parte de la interfaz <code>Reservable</code> dej&oacute; de pertenecer al
+        objeto (disponibilidad) y qu&eacute; se mantuvo (costo) exigi&oacute;
+        reescribir el contrato y la documentaci&oacute;n de la Fase 1.</li>
+  </ul>
+</section>
+
+</body>
+</html>
