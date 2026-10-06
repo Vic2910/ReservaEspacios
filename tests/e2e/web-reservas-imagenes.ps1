@@ -1,6 +1,7 @@
 # =====================================================================
 # ReservaEspacios - pruebas web end-to-end (parte 2: imagenes, borrado,
-# reservas traslapadas, reporte y escape de salida)
+# reservas traslapadas, reporte con filtro por tipo, exportacion CSV y
+# escape de salida)
 # Requisitos: base con seed, servidor en :8085 y haber ejecutado antes
 # tests/e2e/web-espacios.ps1 (reutiliza su sesion y su fichero temporal).
 # Uso: powershell -ExecutionPolicy Bypass -File tests/e2e/web-reservas-imagenes.ps1
@@ -117,5 +118,54 @@ Check (-not ((DoCurl @('-s','-b',$jar,'-c',$jar,"$base/reporte.php?fecha=basura"
 $panel = DoCurl @('-s','-b',$jar,'-c',$jar,"$base/index.php")
 Check ($panel -match 'Espacios por tipo') 'panel: totales por tipo'
 Check ($panel -match 'Reservas de hoy') 'panel: reservas de hoy'
+
+# L) Reporte filtrado por tipo de espacio
+$repBase = DoCurl @('-s','-b',$jar,'-c',$jar,"$base/reporte.php")
+$filasBase = @(($repBase -split '<tr>') | Where-Object { $_ -match '\d{2}:\d{2} - \d{2}:\d{2}' })
+$canchasBase = @($filasBase | Where-Object { $_ -match 'Cancha deportiva' })
+Check ($filasBase.Count -gt 0) "reporte sin filtro: muestra reservas del dia ($($filasBase.Count))"
+Check ($canchasBase.Count -gt 0) 'reporte sin filtro: hay reservas de tipo cancha'
+Check ($repBase -match 'Prueba E2E') 'reporte sin filtro: la reserva de sala esta presente'
+
+$res = DoCurl @('-s','-b',$jar,'-c',$jar,'-o','NUL','-w','%{http_code}',"$base/reporte.php?tipo=cancha")
+Check ($res -eq '200') "GET /reporte.php?tipo=cancha -> $res"
+$repTipo = DoCurl @('-s','-b',$jar,'-c',$jar,"$base/reporte.php?tipo=cancha")
+Check (-not ($repTipo -match 'Warning|Fatal error|Stack trace|Notice:|Deprecated:')) 'sin errores PHP con ?tipo=cancha'
+$filasTipo = @(($repTipo -split '<tr>') | Where-Object { $_ -match '\d{2}:\d{2} - \d{2}:\d{2}' })
+Check ($filasTipo.Count -eq $canchasBase.Count) "tipo=cancha: solo las reservas de cancha ($($filasTipo.Count) de $($filasBase.Count))"
+Check (($filasTipo -join ' ') -match 'Cancha de futbol 11') 'tipo=cancha: aparece una cancha del seed'
+Check (-not (($filasTipo -join ' ') -match 'Prueba E2E|Aula Magna|Escritorio')) 'tipo=cancha: sin reservas de otros tipos'
+Check (-not ($repTipo -match 'Sala Aula Magna')) 'tipo=cancha: la tabla de tarifas tambien se filtra'
+
+$repInv = DoCurl @('-s','-b',$jar,'-c',$jar,"$base/reporte.php?tipo=tipo_invalido")
+$filasInv = @(($repInv -split '<tr>') | Where-Object { $_ -match '\d{2}:\d{2} - \d{2}:\d{2}' })
+Check (-not ($repInv -match 'Warning|Fatal error|Stack trace|Notice:|Deprecated:')) 'sin errores PHP con tipo invalido'
+Check ($filasInv.Count -eq $filasBase.Count) "tipo invalido ignorado: mismas reservas que sin filtro ($($filasInv.Count))"
+Check ($repInv -match 'Prueba E2E') 'tipo invalido: se muestran todos los tipos'
+
+# M) Exportacion CSV del reporte del dia
+$res = DoCurl @('-s','-b',$jar,'-c',$jar,'-o','NUL','-w','%{http_code}',"$base/reporte-csv.php?fecha=$hoy")
+Check ($res -eq '200') "GET /reporte-csv.php?fecha=$hoy -> $res"
+$ctype = DoCurl @('-s','-b',$jar,'-c',$jar,'-o','NUL','-w','%{content_type}',"$base/reporte-csv.php?fecha=$hoy")
+Check ($ctype -eq 'text/csv; charset=utf-8') "Content-Type del CSV -> $ctype"
+$csvCab = DoCurl @('-s','-b',$jar,'-c',$jar,'-D','-','-o','NUL',"$base/reporte-csv.php?fecha=$hoy")
+Check ($csvCab -match "Content-Disposition: attachment; filename=`"reporte-$hoy\.csv`"") 'descarga con nombre reporte-AAAA-MM-DD.csv'
+$csv = DoCurl @('-s','-b',$jar,'-c',$jar,"$base/reporte-csv.php?fecha=$hoy")
+Check ($csv -match 'Horario;Cliente;Espacio;Tipo') 'cabecera de columnas separada por ;'
+Check (-not ($csv -match 'Horario,Cliente')) 'el separador NO es la coma'
+Check ($csv -match 'Prueba E2E') 'la reserva del dia aparece en el CSV'
+Check (-not ($csv -match '<!DOCTYPE|<table|</html>')) 'el CSV no contiene HTML'
+Check (-not ($csv -match 'Warning|Fatal error|Stack trace|Notice:|Deprecated:')) 'sin errores PHP en el CSV'
+$filasCsv = @(($csv -split "`n") | Where-Object { $_ -match '\d{2}:\d{2} - \d{2}:\d{2}' })
+Check ($filasCsv.Count -eq $filasBase.Count) "el CSV exporta todas las reservas del dia ($($filasCsv.Count))"
+
+$csvTipo = DoCurl @('-s','-b',$jar,'-c',$jar,"$base/reporte-csv.php?fecha=$hoy&tipo=cancha")
+$filasCsvTipo = @(($csvTipo -split "`n") | Where-Object { $_ -match '\d{2}:\d{2} - \d{2}:\d{2}' })
+Check ($filasCsvTipo.Count -eq $canchasBase.Count) "CSV con tipo=cancha: solo canchas ($($filasCsvTipo.Count))"
+Check (-not ($csvTipo -match 'Prueba E2E')) 'CSV con filtro: sin reservas de otros tipos'
+
+$csvInv = DoCurl @('-s','-b',$jar,'-c',$jar,"$base/reporte-csv.php?fecha=$hoy&tipo=tipo_invalido")
+$filasCsvInv = @(($csvInv -split "`n") | Where-Object { $_ -match '\d{2}:\d{2} - \d{2}:\d{2}' })
+Check ($filasCsvInv.Count -eq $filasBase.Count) 'CSV con tipo invalido: se ignora y exporta todas'
 
 Write-Output "FALLOS=$global:fallos"
