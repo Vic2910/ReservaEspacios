@@ -60,7 +60,7 @@
     <h2>Reservas del dia</h2>
 
     <?php if ($reservas === []): ?>
-        <p class="vacio">No hay reservas para la fecha seleccionada.</p>
+        <p class="vacio">No hay reservas para la fecha seleccionada. <a href="/reservas/crear.php">Registrar una reserva</a>.</p>
     <?php else: ?>
         <div class="tabla-contenedor">
             <table class="tabla">
