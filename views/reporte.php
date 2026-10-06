@@ -39,6 +39,15 @@
             </select>
         </div>
         <button class="btn" type="submit">Actualizar reporte</button>
+        <?php
+        $parametrosCsv = ['fecha' => $fecha];
+
+        if ($tipo !== '') {
+            $parametrosCsv['tipo'] = $tipo;
+        }
+        ?>
+        <a class="btn btn-secundario"
+           href="/reporte-csv.php?<?= e(http_build_query($parametrosCsv)) ?>">Exportar CSV</a>
     </form>
 
     <div class="resumen-flex">
