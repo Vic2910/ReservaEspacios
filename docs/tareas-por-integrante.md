@@ -13,7 +13,7 @@ Reglas del equipo (importantes):
    ```bash
    git config user.name  "Nombre y apellido"
    git config user.email "correo@ejemplo.com"
-   git clone https://github.com/Cent0403/ReservaEspacios.git
+   git clone https://github.com/Vic2910/ReservaEspacios.git
    git checkout main
    ```
 
