@@ -11,6 +11,8 @@
  * - Reserva[] $reservas
  * - float $totalDia
  * - Espacio[] $espacios
+ * - float $totalTarifas2Horas
+ * - float $totalTarifas2HorasPico
  */
 ?>
 <section>
@@ -93,6 +95,14 @@
                 </tr>
             <?php endforeach; ?>
             </tbody>
+            <tfoot>
+            <tr class="fila-totales">
+                <td colspan="3">Totales</td>
+                <td class="numerico">S/ <?= e(number_format($totalTarifas2Horas, 2)) ?></td>
+                <td class="numerico">S/ <?= e(number_format($totalTarifas2HorasPico, 2)) ?></td>
+                <td></td>
+            </tr>
+            </tfoot>
         </table>
     </div>
 </section>

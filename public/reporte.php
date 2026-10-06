@@ -9,6 +9,7 @@ declare(strict_types=1);
  */
 
 use App\Entidades\Reserva;
+use App\Espacios\Espacio;
 
 require __DIR__ . '/../src/bootstrap.php';
 
@@ -23,6 +24,16 @@ $totalDia = array_sum(array_map(
 ));
 
 $espacios = $repositorioEspacios->listar();
+
+$totalTarifas2Horas = array_sum(array_map(
+    static fn (Espacio $espacio): float => $espacio->calcularCosto(2),
+    $espacios
+));
+
+$totalTarifas2HorasPico = array_sum(array_map(
+    static fn (Espacio $espacio): float => $espacio->calcularCosto(2, true),
+    $espacios
+));
 
 $titulo = 'Reporte web';
 $seccion = 'reporte';

@@ -250,6 +250,12 @@ h3 {
   background: #f8fafc;
 }
 
+.tabla tfoot td {
+  font-weight: 700;
+  background: var(--color-fondo);
+  border-bottom: none;
+}
+
 .tabla .numerico {
   text-align: right;
   white-space: nowrap;
