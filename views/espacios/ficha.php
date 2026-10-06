@@ -37,7 +37,7 @@ use App\Factories\EspacioFactory;
                 <dd><?= e($espacio->getCapacidad()) ?> <?= $espacio->getCapacidad() === 1 ? 'persona' : 'personas' ?></dd>
 
                 <dt>Tarifa base</dt>
-                <dd>S/ <?= e(number_format($espacio->getTarifaBase(), 2)) ?> por hora</dd>
+                <dd>S/ <?= e(number_format($espacio->getTarifaBase(), 2)) ?> por hora · pico S/ <?= e(number_format($espacio->calcularCosto(1.0, true), 2)) ?></dd>
 
                 <dt>Dato calculado</dt>
                 <dd><?= e($espacio->datoCalculado()) ?></dd>
