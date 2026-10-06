@@ -89,6 +89,7 @@
                     <?php if (isset($errores['hora_inicio'])): ?>
                         <small class="mensaje-error"><?= e($errores['hora_inicio']) ?></small>
                     <?php endif; ?>
+                    <small class="ayuda">Las reservas que empiecen a partir de las 17:00 tienen recargo segun el tipo de espacio.</small>
                 </div>
 
                 <div class="<?= e(clase_error($errores, 'hora_fin')) ?>">
