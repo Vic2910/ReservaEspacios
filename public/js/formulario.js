@@ -1,9 +1,10 @@
-/**
+﻿/**
  * Mejora progresiva del formulario de espacios:
  * - muestra unicamente los campos propios del tipo seleccionado;
  * - aplica/retira el atributo required segun el tipo activo;
  * - previsualiza la imagen antes de enviarla;
- * - retira el error del campo cuando vuelve a ser valido.
+ * - retira el error del campo cuando vuelve a ser valido;
+ * - valida el tamano de la imagen en el cliente.
  * Sin JavaScript el formulario sigue funcionando: la validacion del
  * servidor es la que no puede faltar.
  */
@@ -61,3 +62,4 @@
         formulario.addEventListener('input', function () { revisarReglas(formulario); });
     }
 })();
+
