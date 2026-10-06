@@ -59,8 +59,11 @@ mysql -u root -p < database/seed.sql
 
 `schema.sql` crea la base, las tablas `espacios` (tabla unica con la columna
 `tipo` y constraints `CHECK`) y `reservas` (con clave foranea
-`ON DELETE RESTRICT`). `seed.sql` inserta 3 espacios por tipo y 10 reservas,
-varias con la fecha actual para que el panel y el reporte muestren datos.
+`ON DELETE RESTRICT`). `seed.sql` inserta 5 espacios por tipo (15 en total) y
+10 reservas, varias con la fecha actual para que el panel y el reporte
+muestren datos. **Atencion:** `seed.sql` borra y vuelve a cargar todos los
+datos de prueba (`TRUNCATE`), asi que no lo ejecutes si quieres conservar
+registros propios.
 
 ### 3. Configuracion
 
@@ -86,7 +89,92 @@ puedes apuntar el VirtualHost a la carpeta `public/` (todo lo accesible por
 HTTP vive ahi; `src/`, `views/`, `config/` y `database/` quedan fuera).
 
 > El directorio `public/uploads/` debe ser escribible: ahi se guardan las
-> imagenes con un nombre aleatorio generado por el sistema.
+> imagenes con un nombre aleatorio generado por el sistema. Si no lo es, mira
+> [Problemas frecuentes](#problemas-frecuentes).
+
+## Problemas frecuentes
+
+### 1. Puerto ocupado: `Address already in use` o pagina en blanco
+
+El servidor embebido no arranca porque el puerto ya esta tomado (otra instancia
+de `php -S`, Apache de XAMPP, otro proyecto). Identifica el proceso y, si no lo
+necesitas, terminarlo; si no, levanta la aplicacion en otro puerto:
+
+```powershell
+# Windows: quien escucha el 8085
+netstat -ano | findstr :8085
+Get-Process -Id <PID>            # a que proceso pertenece
+Stop-Process -Id <PID>           # solo si puedes terminarlo
+```
+
+```bash
+# Linux/macOS
+lsof -i :8085
+kill <PID>
+```
+
+O en cualquier sistema, con otro puerto (recuerda usar esa URL en el navegador):
+
+```bash
+php -S 127.0.0.1:8086 -t public
+```
+
+Con XAMPP/Apache el conflicto no es el 8085 sino el 80: desactiva Apache desde
+el panel de XAMPP si vas a usar el servidor embebido, o usa solo Apache.
+
+### 2. No se guardan las fotos: `public/uploads/` sin permisos de escritura
+
+**Sintoma:** al registrar un espacio con imagen aparece junto al campo
+«No se pudo guardar la imagen en el servidor.» (el detalle queda en el log de
+PHP). La carpeta se crea sola si no existe, pero debe ser escribible por el
+usuario que atiende las peticiones (el de la CLI con `php -S`, o `www-data`
+cuando sirve Apache):
+
+```powershell
+# Windows
+icacls public\uploads /grant "%USERNAME%:(OI)(CI)M" /T
+```
+
+```bash
+# Linux/macOS (Apache)
+chmod -R 775 public/uploads
+sudo chown -R www-data:www-data public/uploads
+```
+
+Comprobacion en una linea (debe imprimir `bool(true)`):
+
+```bash
+php -r "var_dump(is_writable('public/uploads'));"
+```
+
+### 3. La base de datos no existe o no coincide con la configuracion
+
+**Sintoma:** la pagina responde «Ocurrio un error inesperado» (o el texto
+«Falta la configuracion: copia config/config.example.php como
+config/config.php y ejecuta database/schema.sql y database/seed.sql»). Casi
+siempre es una de estas tres causas:
+
+1. Falta `config/config.php`: copia el ejemplo.
+
+   ```bash
+   copy config\config.example.php config\config.php    # Windows
+   # cp config/config.example.php config/config.php    # Linux/macOS
+   ```
+
+2. La base nunca se creo (o quedo sin datos). Crea la base y carga el seed:
+
+   ```bash
+   mysql -u root -p < database/schema.sql
+   mysql -u root -p < database/seed.sql
+   ```
+
+3. Las credenciales de `config/config.php` (`host`, `puerto`, `nombre`,
+   `usuario`, `clave`) no coinciden con tu servidor. Ajustalas y vuelve a
+   probar; `nombre` debe ser `reserva_espacios`.
+
+Para ver el motivo exacto, busca el mensaje que registro la aplicacion
+(`[ReservaEspacios] PDOException: ...`): con `php -S` aparece en la misma
+consola donde arrancaste el servidor; en XAMPP, en `php_error.log`.
 
 ## Pruebas
 
