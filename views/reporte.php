@@ -13,6 +13,8 @@
  * - Espacio[] $espacios
  * - float $totalTarifas2Horas
  * - float $totalTarifas2HorasPico
+ * - string $tipo (tipo activo o vacio para todos)
+ * - array<string, string> $tiposEspacios
  */
 ?>
 <section>
@@ -25,11 +27,23 @@
             <label for="fecha">Fecha del reporte</label>
             <input type="date" id="fecha" name="fecha" value="<?= e($fecha) ?>" required>
         </div>
+        <div class="campo">
+            <label for="tipo">Tipo de espacio</label>
+            <select id="tipo" name="tipo">
+                <option value="">Todos los tipos</option>
+                <?php foreach ($tiposEspacios as $clave => $etiquetaTipo): ?>
+                    <option value="<?= e($clave) ?>" <?= $tipo === $clave ? 'selected' : '' ?>>
+                        <?= e($etiquetaTipo) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
         <button class="btn" type="submit">Actualizar reporte</button>
     </form>
 
     <div class="resumen-flex">
         <span class="pastilla">Fecha: <?= e($fecha) ?></span>
+        <span class="pastilla">Tipo: <?= e($tipo === '' ? 'Todos' : $tiposEspacios[$tipo]) ?></span>
         <span class="pastilla">Reservas: <?= e(count($reservas)) ?></span>
         <span class="pastilla">Costo estimado del dia: S/ <?= e(number_format($totalDia, 2)) ?></span>
     </div>

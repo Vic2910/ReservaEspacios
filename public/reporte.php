@@ -10,13 +10,27 @@ declare(strict_types=1);
 
 use App\Entidades\Reserva;
 use App\Espacios\Espacio;
+use App\Factories\EspacioFactory;
 
 require __DIR__ . '/../src/bootstrap.php';
 
 $fecha = fecha_solicitud(date('Y-m-d'));
 
+// El filtro por tipo se valida contra los tipos reales del proyecto: si el
+// valor recibido no existe se ignora y el reporte muestra todos. [VALIDACION]
+$tiposEspacios = EspacioFactory::tipos();
+$tipoSolicitado = trim((string) ($_GET['tipo'] ?? ''));
+$tipo = array_key_exists($tipoSolicitado, $tiposEspacios) ? $tipoSolicitado : '';
+
 /** @var Reserva[] $reservas */
 $reservas = $repositorioReservas->listarPorFecha($fecha);
+
+if ($tipo !== '') {
+    $reservas = array_values(array_filter(
+        $reservas,
+        static fn (Reserva $reserva): bool => $reserva->getEspacio()->getTipo() === $tipo
+    ));
+}
 
 $totalDia = array_sum(array_map(
     static fn (Reserva $reserva): float => $reserva->costoEstimado(),
@@ -24,6 +38,13 @@ $totalDia = array_sum(array_map(
 ));
 
 $espacios = $repositorioEspacios->listar();
+
+if ($tipo !== '') {
+    $espacios = array_values(array_filter(
+        $espacios,
+        static fn (Espacio $espacio): bool => $espacio->getTipo() === $tipo
+    ));
+}
 
 $totalTarifas2Horas = array_sum(array_map(
     static fn (Espacio $espacio): float => $espacio->calcularCosto(2),
